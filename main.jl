@@ -19,8 +19,3 @@ end
 function get_frequency(T::Real, n::Int)
     return n/3.1496 * sqrt(T/0.006805)
 end
-<<<<<<< HEAD
-
-show(first(voltages₁, 5), allcols=true)
-=======
->>>>>>> 35fffdb (Updated main.jl)
