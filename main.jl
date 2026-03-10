@@ -59,5 +59,5 @@ end
 f_final₁ = f_sub[final_indices₁]
 f_final₂ = f_sub[final_indices₂]
 
-print(f_final₁)
-print(f_final₂)
+println(f_final₁)
+println("\n",f_final₂)
