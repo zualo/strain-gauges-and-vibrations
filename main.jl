@@ -1,9 +1,12 @@
 using CSV, DataFrames, LaTeXStrings, Plots, Plots.Measures, Peaks, Statistics
 
 const voltages₁ = CSV.read("OData1.csv", DataFrame, header=10)
-const time₁ = voltages₁[!, "Time"]
+const times₁ = voltages₁[!, "Time"]
 
 const voltages₂ = CSV.read("OData2.csv", DataFrame, header=10)
+const times₂ = voltages₂[!, "Time"]
+
+const fₘ = 1/3.42e-6
 
 function get_damping_ratio(yₙ, y₁, n)
     δ = log(y₁/yₙ)/(n-1)
@@ -22,76 +25,82 @@ function get_frequency(n::Int, T::Real)
     return n/3.1496 * sqrt(T/0.006805)
 end
 
-tensions₁ = get_tension.(voltages₁[!, "Channel 0"])
-T̅₁ = mean(tensions₁)
+function frequency_response(voltages, times)
+    tensions = get_tension.(voltages[!, "Channel 0"])
+    powers₁ = voltages₁[!, "FFT 1"] .^ 2
+    powers₂ = voltages₁[!, "FFT 2"] .^ 2
 
-freqs₀ = [get_frequency(n, T̅₁) for n in 1:4]
-println("Theoretical Frequencies: ", freqs₀)
+    T̅ = mean(tensions)
 
-fₛ = 1/0.00000171
-fₘ = fₛ/2
+    freqs₀ = [get_frequency(n, T̅) for n in 1:4]
+    println("Theoretical Frequencies: ", freqs₀)
 
-freqsₙ = collect(range(0.004847867, fₘ, 100000))
-powers₁ = voltages₁[!, "FFT 1"] .^ 2
-powers₂ = voltages₁[!, "FFT 2"] .^ 2
+    freqsₙ = collect(range(times[1], fₘ, 100000))
+    
+    mask = freqsₙ .< 200
+    fₛ = freqsₙ[mask]
+    p₁ = powers₁[mask]
+    p₂ = powers₂[mask]
 
-mask = freqsₙ .< 200
-f_sub = freqsₙ[mask]
-p₁_sub = powers₁[mask]
-p₂_sub = powers₂[mask]
+    i₁ = argmaxima(p₁, 5; strict=true)
+    i₂ = argmaxima(p₂, 5; strict=true)
+    println("Channel 0 Frequencies: ", fₛ[i₁])
+    println("Channel 1 Frequencies: ", fₛ[i₂])
 
-indices₁ = argmaxima(p₁_sub, 5; strict=true)
-indices₂ = argmaxima(p₂_sub, 5; strict=true)
+    a = plot(
+        fₛ,
+        p₁,
+        grid=false, 
+        minorgrid=false,
+        margin=5mm, 
+        legendfontsize=10,
+        tickfontsize = 10,
+        yformatter = :scientific,
+        label = L"\mathrm{Signal}",
+        legend= :outertop,
+        legendcolumns = 2,
+        guidefontsize = 15,
+        xlabel = L"\mathrm{Frequency} \ (Hz)",
+        ylabel = L"\mathrm{Power} \ (V^2)"
+    )
 
-println("Channel 0 Frequencies: ", f_final₁)
-println("Channel 1 Frequencies: ", f_final₂)
+    plot!(
+        fₛ[indices₁], 
+        p₁[indices₁],
+        seriestype = :scatter,
+        marker = :circle,
+        label = L"\mathrm{Peaks}"
+    )
 
-a = plot(
-    f_sub,
-    p₁_sub,
-    grid=false, 
-    minorgrid=false,
-    margin=5mm, 
-    legendfontsize=10,
-    tickfontsize = 10,
-    yformatter = :scientific,
-    label = L"\mathrm{Signal}"
-)
+    display(a)
 
-plot!(
-    f_sub[indices₁], 
-    p₁_sub[indices₁],
-    seriestype = :scatter,
-    marker = :circle,
-    label = L"\mathrm{Peaks}"
-)
+    b = plot(
+        fₛ,
+        p₂,
+        grid=false, 
+        minorgrid=false,
+        margin=5mm, 
+        legendfontsize=10,
+        tickfontsize = 10,
+        yformatter = :scientific,
+        label = L"\mathrm{Signal}",
+        legend= :outertop,
+        legendcolumns = 2,
+        guidefontsize = 15,
+        xlabel = L"\mathrm{Frequency} \ (Hz)",
+        ylabel = L"\mathrm{Power} \ (V^2)"
+    )
 
-plot!(legend=:outertop, legendcolumns=2)
-xlabel!(L"\mathrm{Frequency} \ (Hz)", guidefontsize=15)
-ylabel!(L"\mathrm{Power} \ (V^2)", guidefontsize=15)
+    plot!(
+        fₛ[indices₂], 
+        p₂[indices₂],
+        seriestype = :scatter,
+        marker = :circle,
+        label = L"\mathrm{Peaks}"
+    )
 
-display(a)
+    display(b)
+end
 
-b = plot(
-    f_sub,
-    p₂_sub,
-    grid=false, 
-    minorgrid=false,
-    margin=5mm, 
-    legendfontsize=10,
-    tickfontsize = 10,
-    yformatter = :scientific,
-    label = L"\mathrm{Signal}"
-)
-
-plot!(
-    f_sub[indices₂], 
-    p₂_sub[indices₂],
-    seriestype = :scatter,
-    marker = :circle,
-    label = L"\mathrm{Peaks}"
-)
-
-plot!(legend=:outertop, legendcolumns=2)
-xlabel!(L"\mathrm{Frequency} \ (Hz)", guidefontsize=15)
-ylabel!(L"\mathrm{Power} \ (V^2)", guidefontsize=15)
+frequency_response(voltages₁, times₁)
+frequency_response(voltages₂, times₂)
