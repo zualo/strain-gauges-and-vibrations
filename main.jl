@@ -26,7 +26,7 @@ tensions₁ = get_tension.(voltages₁[!, "Channel 0"])
 T̅₁ = mean(tensions₁)
 
 freqs₀ = [get_frequency(n, T̅₁) for n in 1:4]
-println(freqs₀)
+println("Theoretical Frequencies: ", freqs₀)
 
 fₛ = 1/0.00000171
 fₘ = fₛ/2
@@ -40,24 +40,58 @@ f_sub = freqsₙ[mask]
 p₁_sub = powers₁[mask]
 p₂_sub = powers₂[mask]
 
-indices, heights = findpeaks(p₁_sub; proms=(;min=2))
-indices2, heights2 = findpeaks(p₂_sub; proms=(;min=2))
+indices₁ = argmaxima(p₁_sub, 5; strict=true)
+indices₂ = argmaxima(p₂_sub, 5; strict=true)
 
-final_indices₁ = []
-final_indices₂ = []
+println("Channel 0 Frequencies: ", f_final₁)
+println("Channel 1 Frequencies: ", f_final₂)
 
-for f in freqs₀
-    window = findall(x -> abs(x - f) < 10, f_sub)
+a = plot(
+    f_sub,
+    p₁_sub,
+    grid=false, 
+    minorgrid=false,
+    margin=5mm, 
+    legendfontsize=10,
+    tickfontsize = 10,
+    yformatter = :scientific,
+    label = L"\mathrm{Signal}"
+)
 
-    best_in_window₁ = window[argmax(p₁_sub[window])]
-    best_in_window₂ = window[argmax(p₂_sub[window])]
-    
-    push!(final_indices₁, best_in_window₁)
-    push!(final_indices₂, best_in_window₂)
-end
+plot!(
+    f_sub[indices₁], 
+    p₁_sub[indices₁],
+    seriestype = :scatter,
+    marker = :circle,
+    label = L"\mathrm{Peaks}"
+)
 
-f_final₁ = f_sub[final_indices₁]
-f_final₂ = f_sub[final_indices₂]
+plot!(legend=:outertop, legendcolumns=2)
+xlabel!(L"\mathrm{Frequency} \ (Hz)", guidefontsize=15)
+ylabel!(L"\mathrm{Power} \ (V^2)", guidefontsize=15)
 
-println(f_final₁)
-println(f_final₂)
+display(a)
+
+b = plot(
+    f_sub,
+    p₂_sub,
+    grid=false, 
+    minorgrid=false,
+    margin=5mm, 
+    legendfontsize=10,
+    tickfontsize = 10,
+    yformatter = :scientific,
+    label = L"\mathrm{Signal}"
+)
+
+plot!(
+    f_sub[indices₂], 
+    p₂_sub[indices₂],
+    seriestype = :scatter,
+    marker = :circle,
+    label = L"\mathrm{Peaks}"
+)
+
+plot!(legend=:outertop, legendcolumns=2)
+xlabel!(L"\mathrm{Frequency} \ (Hz)", guidefontsize=15)
+ylabel!(L"\mathrm{Power} \ (V^2)", guidefontsize=15)
