@@ -60,4 +60,4 @@ f_final₁ = f_sub[final_indices₁]
 f_final₂ = f_sub[final_indices₂]
 
 println(f_final₁)
-println("\n",f_final₂)
+println(f_final₂)
