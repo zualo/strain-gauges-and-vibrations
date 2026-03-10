@@ -25,10 +25,10 @@ function get_frequency(n::Int, T::Real)
     return n/3.1496 * sqrt(T/0.006805)
 end
 
-function frequency_response(voltages, times)
+function frequency_response(voltages, times, w)
     tensions = get_tension.(voltages[!, "Channel 0"])
-    powers₁ = voltages₁[!, "FFT 1"] .^ 2
-    powers₂ = voltages₁[!, "FFT 2"] .^ 2
+    powers₁ = voltages[!, "FFT 1"] .^ 2
+    powers₂ = voltages[!, "FFT 2"] .^ 2
 
     T̅ = mean(tensions)
 
@@ -42,8 +42,8 @@ function frequency_response(voltages, times)
     p₁ = powers₁[mask]
     p₂ = powers₂[mask]
 
-    i₁ = argmaxima(p₁, 5; strict=true)
-    i₂ = argmaxima(p₂, 5; strict=true)
+    i₁ = argmaxima(p₁, w; strict=true)
+    i₂ = argmaxima(p₂, w; strict=true)
     println("Channel 0 Frequencies: ", fₛ[i₁])
     println("Channel 1 Frequencies: ", fₛ[i₂])
 
@@ -65,8 +65,8 @@ function frequency_response(voltages, times)
     )
 
     plot!(
-        fₛ[indices₁], 
-        p₁[indices₁],
+        fₛ[i₁], 
+        p₁[i₁],
         seriestype = :scatter,
         marker = :circle,
         label = L"\mathrm{Peaks}"
@@ -92,8 +92,8 @@ function frequency_response(voltages, times)
     )
 
     plot!(
-        fₛ[indices₂], 
-        p₂[indices₂],
+        fₛ[i₂], 
+        p₂[i₂],
         seriestype = :scatter,
         marker = :circle,
         label = L"\mathrm{Peaks}"
@@ -102,5 +102,5 @@ function frequency_response(voltages, times)
     display(b)
 end
 
-frequency_response(voltages₁, times₁)
-frequency_response(voltages₂, times₂)
+frequency_response(voltages₁, times₁, 5)
+frequency_response(voltages₂, times₂, 7)
