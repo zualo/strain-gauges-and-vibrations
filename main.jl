@@ -1,4 +1,4 @@
-using CSV, DataFrames, LaTeXStrings, Plots, Plots.Measures, Peaks, Statistics
+using CSV, DataFrames, FFTW, LaTeXStrings, Plots, Plots.Measures, Peaks, Statistics
 
 const voltages₁ = CSV.read("OData1.csv", DataFrame, header=10)
 const times₁ = voltages₁[!, "Time"]
@@ -7,6 +7,7 @@ const voltages₂ = CSV.read("OData2.csv", DataFrame, header=10)
 const times₂ = voltages₂[!, "Time"]
 
 const fₘ = 1/3.42e-6
+const fₙ = 1/6.86e-5
 
 function get_damping_ratio(yₙ, y₁, n)
     δ = log(y₁/yₙ)/(n-1)
@@ -25,19 +26,19 @@ function get_frequency(n::Int, T::Real)
     return n/3.1496 * sqrt(T/0.006805)
 end
 
-function frequency_response(voltages, times, w)
+function frequency_response(voltages, times, w, f)
     tensions = get_tension.(voltages[!, "Channel 0"])
-    powers₁ = voltages[!, "FFT 1"] .^ 2
-    powers₂ = voltages[!, "FFT 2"] .^ 2
+    powers₁ = abs.(rfft(voltages[!, "Channel 0"])).^2
+    powers₂ = abs.(rfft(voltages[!, "Channel 1"])).^2
 
     T̅ = mean(tensions)
 
     freqs₀ = [get_frequency(n, T̅) for n in 1:4]
     println("Theoretical Frequencies: ", freqs₀)
 
-    freqsₙ = collect(range(times[1], fₘ, 100000))
+    freqsₙ = rfftfreq(100000, f)
     
-    mask = freqsₙ .< 200
+    mask = freqsₙ .< 220
     fₛ = freqsₙ[mask]
     p₁ = powers₁[mask]
     p₂ = powers₂[mask]
@@ -102,5 +103,5 @@ function frequency_response(voltages, times, w)
     display(b)
 end
 
-frequency_response(voltages₁, times₁, 5)
-frequency_response(voltages₂, times₂, 7)
+frequency_response(voltages₁, times₁, 5, fₘ)
+frequency_response(voltages₂, times₂, 150, fₙ)
