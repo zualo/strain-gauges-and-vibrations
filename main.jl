@@ -62,7 +62,8 @@ function frequency_response(voltages, times, w, f)
         legendcolumns = 2,
         guidefontsize = 15,
         xlabel = L"\mathrm{Frequency} \ (Hz)",
-        ylabel = L"\mathrm{Power} \ (V^2)"
+        ylabel = L"\mathrm{Power} \ (V^2)",
+        yscale = :log10
     )
 
     plot!(
@@ -89,7 +90,8 @@ function frequency_response(voltages, times, w, f)
         legendcolumns = 2,
         guidefontsize = 15,
         xlabel = L"\mathrm{Frequency} \ (Hz)",
-        ylabel = L"\mathrm{Power} \ (V^2)"
+        ylabel = L"\mathrm{Power} \ (V^2)",
+        yscale = :log10
     )
 
     plot!(
