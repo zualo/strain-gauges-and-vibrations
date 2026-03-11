@@ -26,10 +26,12 @@ function get_frequency(n::Int, T::Real)
     return n/3.1496 * sqrt(T/0.006805)
 end
 
+power_series = x -> abs.(rfft(x)).^2
+
 function frequency_response(voltages, times, w, f)
     tensions = get_tension.(voltages[!, "Channel 0"])
-    powers₁ = abs.(rfft(voltages[!, "Channel 0"])).^2
-    powers₂ = abs.(rfft(voltages[!, "Channel 1"])).^2
+    powers₁ = power_series(voltages[!, "Channel 0"])
+    powers₂ = power_series(voltages[!, "Channel 1"])
 
     T̅ = mean(tensions)
 
