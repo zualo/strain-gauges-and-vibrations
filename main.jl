@@ -1,5 +1,7 @@
 using CSV, DataFrames, FFTW, LaTeXStrings, Plots, Plots.Measures, Peaks, Statistics
 
+default(show=true)
+
 const voltages₁ = CSV.read("OData1.csv", DataFrame, header=10)
 const times₁ = voltages₁[!, "Time"]
 
@@ -26,17 +28,19 @@ function get_frequency(n::Int, T::Real)
     return n/3.1496 * sqrt(T/0.006805)
 end
 
-power_series = x -> abs.(rfft(x)).^2
-
-function frequency_response(voltages, times, w, f)
+function get_theoretical_frequencies(voltages)
     tensions = get_tension.(voltages[!, "Channel 0"])
-    powers₁ = power_series(voltages[!, "Channel 0"])
-    powers₂ = power_series(voltages[!, "Channel 1"])
-
     T̅ = mean(tensions)
 
     freqs₀ = [get_frequency(n, T̅) for n in 1:4]
     println("Theoretical Frequencies: ", freqs₀)
+end
+
+power_series = x -> abs.(rfft(x)).^2
+
+function frequency_response(voltages, times, w, f)
+    powers₁ = power_series(voltages[!, "Channel 0"])
+    powers₂ = power_series(voltages[!, "Channel 1"])
 
     freqsₙ = rfftfreq(100000, f)
     
@@ -76,8 +80,6 @@ function frequency_response(voltages, times, w, f)
         label = L"\mathrm{Peaks}"
     )
 
-    display(a)
-
     b = plot(
         fₛ,
         p₂,
@@ -104,8 +106,9 @@ function frequency_response(voltages, times, w, f)
         label = L"\mathrm{Peaks}"
     )
 
-    display(b)
+    return a, b
 end
 
+get_theoretical_frequencies(voltages₁)
 frequency_response(voltages₁, times₁, 5, fₘ)
 frequency_response(voltages₂, times₂, 150, fₙ)
