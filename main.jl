@@ -1,6 +1,4 @@
-using CSV, DataFrames, FFTW, LaTeXStrings, Plots, Plots.Measures, Peaks, Statistics
-
-default(show=true)
+using CSV, DataFrames, FFTW, LaTeXStrings, Plots, Plots.Measures, Peaks, Random, Statistics
 
 const voltages₁ = CSV.read("OData1.csv", DataFrame, header=10)
 const times₁ = voltages₁[!, "Time"]
@@ -68,7 +66,7 @@ function frequency_response(voltages, times, w, f)
         legendcolumns = 2,
         guidefontsize = 15,
         xlabel = L"\mathrm{Frequency} \ (Hz)",
-        ylabel = L"\mathrm{Power} \ (V^2)",
+        ylabel = L"\mathrm{Power \; \; Spectrum} \ (V^2)",
         yscale = :log10
     )
 
@@ -94,7 +92,7 @@ function frequency_response(voltages, times, w, f)
         legendcolumns = 2,
         guidefontsize = 15,
         xlabel = L"\mathrm{Frequency} \ (Hz)",
-        ylabel = L"\mathrm{Power} \ (V^2)",
+        ylabel = L"\mathrm{Power \; \; Spectrum} \ (V^2)",
         yscale = :log10
     )
 
@@ -106,7 +104,11 @@ function frequency_response(voltages, times, w, f)
         label = L"\mathrm{Peaks}"
     )
 
-    return a, b
+    display(a)
+    display(b)
+
+    #savefig(a, "figures/plot_$(randstring(8)).svg")
+    #savefig(b, "figures/plot_$(randstring(8)).svg")
 end
 
 get_theoretical_frequencies(voltages₁)
