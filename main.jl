@@ -1,24 +1,26 @@
-using CSV, DataFrames, FFTW, LaTeXStrings, Plots, Plots.Measures, Peaks, Random, Statistics
+using CSV, DataFrames, DSP, FFTW, LaTeXStrings, Plots, Plots.Measures, Peaks, Random, Statistics
 
 const voltages₁ = CSV.read("OData1.csv", DataFrame, header=10)
-const times₁ = voltages₁[!, "Time"]
-
 const voltages₂ = CSV.read("OData2.csv", DataFrame, header=10)
-const times₂ = voltages₂[!, "Time"]
+const voltages₃ = CSV.read("OData3.csv", DataFrame, header = 6)
+const voltages₄ = CSV.read("OData4.csv", DataFrame, header = 6)
 
 const fₘ = 1/3.42e-6
 const fₙ = 1/6.86e-5
+const beam_mass = 0.02012
+const zeroed_voltage = 7.5e-3
+const theoretical_stiffness = 288.351
 
-function get_damping_ratio(yₙ, y₁, n)
+function get_damping_ratio(y₁, yₙ, n)
     δ = log(y₁/yₙ)/(n-1)
     return δ/sqrt((4π^2+δ^2))
 end
 
-function get_strain(V, V₀)
-    return 2(V-V₀)/(10.5)
+function get_strain(V::Real)
+    return 2(V-zeroed_voltage)/10.5
 end
 
-function get_tension(V:: Real)
+function get_tension(V::Real)
     return 261.66 * (V + 0.330)
 end
 
@@ -36,7 +38,7 @@ end
 
 power_series = x -> abs.(rfft(x)).^2
 
-function frequency_response(voltages, times, w, f)
+function frequency_response(voltages, w, f)
     powers₁ = power_series(voltages[!, "Channel 0"])
     powers₂ = power_series(voltages[!, "Channel 1"])
 
@@ -111,6 +113,67 @@ function frequency_response(voltages, times, w, f)
     #savefig(b, "figures/plot_$(randstring(8)).svg")
 end
 
+function strain_series(voltages, α)
+    v = voltages[!, "Channel 0"]
+    t = voltages[!, "Time"]
+    fs = (t[2] - t[1])^(-1)
+
+    ϵ = get_strain.(v)
+    ϵ_clean = filtfilt(digitalfilter(Lowpass(0.01), Butterworth(2)), ϵ)
+
+    i, h = findmaxima(ϵ_clean, 25; strict=false) |> peakheights(; min=0.07)
+
+    ω_d = 2π/mean(diff(t[i]))
+    println("ω_d = $ω_d")
+
+    y₁ = h[1]
+    ζ = [get_damping_ratio.(y₁, h[n], n) for n in 2:length(h)]
+    μ = mean(ζ)
+    σ = std(ζ)
+
+    println("μ: $μ, σ: $σ")
+
+    ω_n = 0
+    if α
+        ω_n = sqrt(theoretical_stiffness/(0.0074+beam_mass+.042))
+    else
+        ω_n = sqrt(theoretical_stiffness/(0.0074+beam_mass))
+    end
+
+    println("ω_n = $ω_n")
+
+    a = plot(
+        t, 
+        ϵ,
+        grid=false, 
+        minorgrid=false,
+        margin=5mm, 
+        legendfontsize=10,
+        tickfontsize = 10,
+        label = L"\mathrm{Signal}",
+        xlabel = L"\mathrm{Time} (s)",
+        ylabel = L"\mathrm{Stain}",
+        legend= :outertop,
+        legendcolumns = 2,
+        guidefontsize = 15,
+    )
+
+    plot!(
+        t[i], 
+        ϵ[i],
+        seriestype = :scatter,
+        marker = :circle,
+        label = L"\mathrm{Peaks}"
+    )
+    
+    display(a)
+    
+    #savefig(a, "figures/plot_$(randstring(8)).svg")
+end
+
 get_theoretical_frequencies(voltages₁)
-frequency_response(voltages₁, times₁, 5, fₘ)
-frequency_response(voltages₂, times₂, 150, fₙ)
+frequency_response(voltages₁, 5, fₘ)
+frequency_response(voltages₂, 150, fₙ)
+
+strain_series(voltages₃, true)
+strain_series(voltages₄, false)
