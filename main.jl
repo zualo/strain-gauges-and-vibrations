@@ -131,6 +131,11 @@ function strain_series(voltages, α)
     μ = mean(ζ)
     σ = std(ζ)
 
+    # Print the first 20 (or fewer) values of zeta
+    for i in 1:min(20, length(ζ))
+        println("ζ[$i] = $(ζ[i])")
+    end
+
     println("μ: $μ, σ: $σ")
 
     ω_n = 0
@@ -143,15 +148,15 @@ function strain_series(voltages, α)
     println("ω_n = $ω_n")
 
     a = plot(
-        t, 
-        ϵ,
+        t[1:10:end], 
+        ϵ[1:10:end],
         grid=false, 
         minorgrid=false,
         margin=5mm, 
         legendfontsize=10,
         tickfontsize = 10,
         label = L"\mathrm{Signal}",
-        xlabel = L"\mathrm{Time} (s)",
+        xlabel = L"\mathrm{Time} \ (s)",
         ylabel = L"\mathrm{Stain}",
         legend= :outertop,
         legendcolumns = 2,
