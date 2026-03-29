@@ -1,5 +1,9 @@
 <div align="center">
-    <img src="images/UNH_BRAND-RGB_C_Single_B.svg" alt="Logo" width="50%">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="images/UNH_BRAND-RGB_C_Single_KO.svg">
+      <source media="(prefers-color-scheme: light)" srcset="images/UNH_BRAND-RGB_C_Single_B.svg">
+      <img alt="Logo" src="UNH_BRAND-RGB_C_Single_B.svg" width="50%">
+    </picture>
     <h1>ME 646</h1>
 </div>
 <div>
