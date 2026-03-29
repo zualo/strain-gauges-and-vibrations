@@ -1,4 +1,5 @@
 <div align="center">
+    <img src="images/UNH_BRAND-RGB_C_Single_B.svg" alt="Logo" width="50%">
     <h1>ME 646</h1>
 </div>
 <div>
